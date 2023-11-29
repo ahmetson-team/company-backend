@@ -1,4 +1,6 @@
 const { ethers } = require('ethers');
+require('dotenv').config();
+
 
 // Paste your ABI here
 const abi = [{
@@ -37,15 +39,16 @@ const abi = [{
         "stateMutability": "view",
         "type": "function"
     }
-    // ... (Paste your ABI here)
 ];
 
-const contractAddress = '0x4eF0ec70773C387028a54F902e06ab5Bd2262b03'; // Replace with the deployed contract address
-const privateKey = '0x045dc7f4f349789ea1efe32613a2c1f690bdcec40cd73ad826fe464e1bc8b9e3'; // Replace with the private key of the account interacting with the contract
-const infuraApiKey = 'https://sepolia.infura.io/v3/6dc016e17bbb4530958e787999eed7c9'; // Replace with your Infura API key
+
+const contractAddress = process.env.CONTRACT_ADDRESS; // Replace with the deployed contract address
+const privateKey = process.env.PRIVATE_KEY; // Replace with the private key of the account interacting with the contract
+const url = process.env.URL;
+const explorerURL = process.env.EXPLORER_URL;
 
 // Connect to the Ethereum network using Infura
-const provider = new ethers.JsonRpcProvider(`https://sepolia.infura.io/v3/6dc016e17bbb4530958e787999eed7c9`);
+const provider = new ethers.JsonRpcProvider(url);
 
 // Create a wallet instance
 const wallet = new ethers.Wallet(privateKey, provider);
@@ -60,7 +63,7 @@ async function interactWithContract() {
         await tx.wait();
 
         console.log('Transaction Hash:', tx.hash);
-        console.log(`View the transaction on Etherscan: https://rinkeby.etherscan.io/tx/${tx.hash}`);
+        console.log(`View the transaction on Etherscan: ${explorerURL}${tx.hash}`);
     } catch (error) {
         console.error('Error occurred:', error);
     }
