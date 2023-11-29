@@ -47,6 +47,7 @@ const privateKey = process.env.PRIVATE_KEY; // Replace with the private key of t
 const url = process.env.URL;
 const explorerURL = process.env.EXPLORER_URL;
 
+
 // Connect to the Ethereum network using Infura
 const provider = new ethers.JsonRpcProvider(url);
 
@@ -68,6 +69,7 @@ async function interactWithContract() {
         console.error('Error occurred:', error);
     }
 }
+
 
 // Call the function to interact with the contract
 interactWithContract();
