@@ -1,6 +1,8 @@
 import * as fs from 'fs';
 import express from 'express';
+import { verify } from '../verify';
 import { ethers } from 'ethers';
+import type { ZeroKnowledgeProofResponse } from '@0xpolygonid/js-sdk';
 import MessageResponse from '../interfaces/MessageResponse';
 import ErrorResponse from '../interfaces/ErrorResponse';
 
@@ -57,12 +59,17 @@ router.post<{}, MessageResponse & { loyalty_points: number }>('/receive-user-dat
   // Retrieve data from the request body
   const { user_data } = req.body;
 
+  // Perform operations with the received data (logic to process user data)
+  if (await verify(user_data as ZeroKnowledgeProofResponse)) {
     // For now, just send back a success response with loyalty points
     const loyaltyPoints = 100;
     res.json({
       loyalty_points: loyaltyPoints,
       message: 'ok',
     });
+  } else {
+    res.status(500);
+  }
 });
 
 
