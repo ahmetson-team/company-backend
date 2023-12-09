@@ -6,7 +6,7 @@
     "scripts": {
         "start": "node dist/index.js",
         "dev": "nodemon src/index.ts",
-        "build": "tsc && ./circuits.sh",
+        "build": "tsc && sh ./circuits.sh",
         "lint": "eslint --fix src",
         "test": "jest",
         "typecheck": "tsc --noEmit"
