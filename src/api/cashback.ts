@@ -5,9 +5,16 @@ import { ethers } from 'ethers';
 import type { ZeroKnowledgeProofResponse } from '@0xpolygonid/js-sdk';
 import MessageResponse from '../interfaces/MessageResponse';
 import ErrorResponse from '../interfaces/ErrorResponse';
-
+import { decrypt, Ecies } from "eccrypto";
 
 require('dotenv').config();
+
+type PassedEcies = {
+  iv: string;
+  ephemPublicKey: string;
+  ciphertext: string;
+  mac: string;
+};
 
 
 // Paste your ABI here
@@ -24,7 +31,8 @@ const ethUrl = process.env.ETH_URL as string;
 const polygonUrl = process.env.POLYGON_URL as string;
 // const explorerURL = process.env.EXPLORER_URL;
 
-
+const acc = new ethers.Wallet(process.env.PRIVATE_KEY!);
+const privateKeyBuffer = Buffer.from(acc.signingKey.privateKey.substring(2), "hex");
 
 // Connect to the Ethereum network using Infura
 const ethProvider = new ethers.JsonRpcProvider(ethUrl);
@@ -61,11 +69,24 @@ router.get('/shop/price/:product_id', (req, res) => {
 router.post<{}, MessageResponse & { loyalty_points: number }>('/receive-user-data', async (req, res) => {
   console.log(`Received the user data`, req.body);
   // Retrieve data from the request body
-  let { user_data } = req.body;
-  if ( typeof user_data === "string" ) {
-    console.log(`User data was given as a string`);
-    user_data = JSON.parse(user_data);
+  let { user_data: cipherText } = req.body;
+
+  if ( typeof cipherText !== "string" ) {
+    return res.status(500);
   }
+
+  const passedCipher = JSON.parse(cipherText) as PassedEcies;
+  console.log(passedCipher.ciphertext);
+
+  let cipherToDecrypt: Ecies = {
+    mac: Buffer.from(passedCipher.mac.substring(2), "hex"),
+    ciphertext: Buffer.from(passedCipher.ciphertext.substring(2), "hex"),
+    ephemPublicKey: Buffer.from(passedCipher.ephemPublicKey.substring(2), "hex"),
+    iv: Buffer.from(passedCipher.iv.substring(2), "hex"),
+  }
+
+  let user_data: any = await decrypt(privateKeyBuffer, cipherToDecrypt);
+  user_data = JSON.parse(user_data.toString());
 
   // Perform operations with the received data (logic to process user data)
   if (await verify(user_data as ZeroKnowledgeProofResponse)) {
@@ -116,7 +137,7 @@ router.get<{ loyaltyPoints: string, user: string, credentialId: string, receiptI
     console.log('trying to announce');
     // Submit data to the smart contract
     const result = await contract
-      .announceLoyaltyPoints(user, receiptBytes, parseInt(loyaltyPoints), parseInt(credentialId));
+      .announceLoyaltyPoints(user, receiptBytes, parseInt(loyaltyPoints), parseInt(credentialId), acc.signingKey.compressedPublicKey);
 
     // Log the transaction ID
     console.log('Transaction ID:', result.hash);
