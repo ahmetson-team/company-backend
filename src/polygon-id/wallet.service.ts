@@ -4,7 +4,7 @@ export class WalletService {
   static async createWallet() {
 
     const defaultEthConnectionConfig = [{
-      url: process.env.POLYGON_RPC_URL,
+      url: process.env.POLYGON_URL,
       defaultGasLimit: 600000,
       minGasPrice: '0',
       maxGasPrice: '100000000000',
