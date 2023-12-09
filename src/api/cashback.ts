@@ -61,7 +61,11 @@ router.get('/shop/price/:product_id', (req, res) => {
 router.post<{}, MessageResponse & { loyalty_points: number }>('/receive-user-data', async (req, res) => {
   console.log(`Received the user data`, req.body);
   // Retrieve data from the request body
-  const { user_data } = req.body;
+  let { user_data } = req.body;
+  if ( typeof user_data === "string" ) {
+    console.log(`User data was given as a string`);
+    user_data = JSON.parse(user_data);
+  }
 
   // Perform operations with the received data (logic to process user data)
   if (await verify(user_data as ZeroKnowledgeProofResponse)) {
