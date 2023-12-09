@@ -1,1 +1,1 @@
-web: node cashbackAPI.js
+web: npm start
