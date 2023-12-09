@@ -84,9 +84,9 @@ router.get<{ loyaltyPoints: string, user: string, credentialId: string, receiptI
   try {
     const { loyaltyPoints, user, credentialId, receiptId } = req.params;
 
-
+    const receiptIdStr = receiptId.length > 32 ? receiptId.substring(0, 32) : receiptId;
     // Convert receipt_id to bytes32 hash
-    const receiptUtf8Bytes = ethers.toUtf8Bytes(receiptId);
+    const receiptUtf8Bytes = ethers.toUtf8Bytes(receiptIdStr);
     const receiptBytes = ethers.zeroPadBytes(ethers.hexlify(receiptUtf8Bytes), 32);
 
 
