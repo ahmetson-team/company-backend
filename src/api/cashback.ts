@@ -59,6 +59,7 @@ router.get('/shop/price/:product_id', (req, res) => {
 
 // Define the endpoint to receive user data
 router.post<{}, MessageResponse & { loyalty_points: number }>('/receive-user-data', async (req, res) => {
+  console.log(`Received the user data`, req.body);
   // Retrieve data from the request body
   const { user_data } = req.body;
 
