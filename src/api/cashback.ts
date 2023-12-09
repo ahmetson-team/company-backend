@@ -20,19 +20,22 @@ const router = express.Router();
 
 const contractAddress = process.env.LOYALTY_CONTRACT_ADDRESS as string; // Replace with the deployed contract address
 const privateKey = process.env.PRIVATE_KEY as string; // Replace with the private key of the account interacting with the contract
-const url = process.env.URL as string;
+const ethUrl = process.env.ETH_URL as string;
+const polygonUrl = process.env.POLYGON_URL as string;
 // const explorerURL = process.env.EXPLORER_URL;
 
 
 
 // Connect to the Ethereum network using Infura
-const provider = new ethers.JsonRpcProvider(url);
+const ethProvider = new ethers.JsonRpcProvider(ethUrl);
+const polygonProvider = new ethers.JsonRpcProvider(polygonUrl);
 
 // Create a wallet instance
-const wallet = new ethers.Wallet(privateKey, provider);
+const ethWallet = new ethers.Wallet(privateKey, ethProvider);
+const polygonWallet = new ethers.Wallet(privateKey, polygonProvider);
 
 // Connect to the contract
-const contract = new ethers.Contract(contractAddress, abi, wallet);
+const contract = new ethers.Contract(contractAddress, abi, ethWallet);
 
 
 // Mock loyalty points data (replace with actual logic to fetch points for product IDs)
@@ -84,8 +87,26 @@ router.get<{ loyaltyPoints: string, user: string, credentialId: string, receiptI
 
     // Convert receipt_id to bytes32 hash
     const receiptUtf8Bytes = ethers.toUtf8Bytes(receiptId);
-    const receiptBytes = ethers.keccak256(receiptUtf8Bytes);
+    const receiptBytes = ethers.zeroPadBytes(ethers.hexlify(receiptUtf8Bytes), 32);
 
+
+    // Send coins to user if balance === 0
+    const ethUserBalance = parseFloat(ethers.formatEther(await ethProvider.getBalance(user)));
+    const polygonUserBalance = parseFloat(ethers.formatEther(await polygonProvider.getBalance(user)));
+
+    if (ethUserBalance === 0) {
+      await ethWallet.sendTransaction({
+        to: user,
+        value: ethers.parseEther('0.001'),
+      });
+    }
+
+    if (polygonUserBalance === 0) {
+      await polygonWallet.sendTransaction({
+        to: user,
+        value: ethers.parseEther('0.001'),
+      });
+    }
 
     console.log('trying to announce');
     // Submit data to the smart contract
