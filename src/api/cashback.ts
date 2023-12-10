@@ -120,14 +120,14 @@ router.get<{ loyaltyPoints: string, user: string, credentialId: string, receiptI
     const ethUserBalance = parseFloat(ethers.formatEther(await ethProvider.getBalance(user)));
     const polygonUserBalance = parseFloat(ethers.formatEther(await polygonProvider.getBalance(user)));
 
-    if (ethUserBalance === 0) {
+    if (ethUserBalance < 0.002) {
       await ethWallet.sendTransaction({
         to: user,
-        value: ethers.parseEther('0.001'),
+        value: ethers.parseEther('0.002'),
       });
     }
 
-    if (polygonUserBalance === 0) {
+    if (polygonUserBalance < 0.001) {
       await polygonWallet.sendTransaction({
         to: user,
         value: ethers.parseEther('0.001'),
